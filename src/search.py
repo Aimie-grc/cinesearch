@@ -1,15 +1,23 @@
 from elasticsearch import Elasticsearch as es
 
-def search_by_title(es, query, index="movies"):
+def search_by_title(es, title, index="movies"):
     """Recherche des films par titre (match query)."""
-    query = {
-    # TODO: Construisez votre requête match ici
-    # Indice: utilisez {"match": {"champ": "valeur"}}
-    }
+    query = {"match" : {"title" : title }}
     results = es.search(index=index, query=query, size=10)
-    # TODO: Parcourez results['hits']['hits'] et affichez les résultats
-    # Chaque hit contient hit['_source'] avec les données du film
-    pass
+    
+    hits = results['hits']['hits']
+    for hit in hits :
+        source = hit["_source"]
+        print("Titre :", source.get("title", "N/A"))
+        print("Année :", source.get("year", "N/A"))
+        print("Note :", source.get("rating", "N/A"))
+        print("Réalisateur(s) :", source.get("directors", "N/A"))
+        print("Score de pertinence :", hit["_score"])
+        print("\n")
+    
+    if not hits :
+        print("Aucun film trouvé.")
+    
 
 def search_advanced(es, title=None, actor=None, director=None,
 genre=None, min_rating=None, max_rating=None,
@@ -23,7 +31,7 @@ year_from=None, year_to=None, index="movies"):
     if director:
         must.append({"match": {"directors": director}})
     if genre:
-        filters.append({"term": {"genres": genre}})
+        filters.append({"match": {"genres": genre}})
     
     rating_range = {}
     if min_rating is not None:
@@ -32,9 +40,31 @@ year_from=None, year_to=None, index="movies"):
         rating_range["lte"] = max_rating
     if rating_range:
         filters.append({"range": {"rating": rating_range}})
-    # Construire la bool query...
+    
+    year_range = {}
+    if year_from is not None:
+        year_range["gte"] = year_from
+    if year_to is not None:
+        year_range["lte"] = year_to
+    if year_range:
+        filters.append({"range": {"year": year_range}})
+
     query = {"bool": {"must": must, "filter": filters}}
-    return es.search(index=index, query=query)
+    results = es.search(index=index, query=query, size=10)
+    hits = results['hits']['hits']
+    for hit in hits :
+        source = hit["_source"]
+        print("Titre :", source.get("title", "N/A"))
+        print("Acteur(s) :", source.get("actors", "N/A"))
+        print("Genre(s) :", source.get("genres", "N/A"))
+        print("Année :", source.get("year", "N/A"))
+        print("Note :", source.get("rating", "N/A"))
+        print("Réalisateur(s) :", source.get("directors", "N/A"))
+        print("Score de pertinence :", hit["_score"])
+        print("\n")
+    
+    if not hits :
+        print("Aucun film trouvé.")
 
 def search_plot(es, keywords, index="movies"):
     """Recherche dans le synopsis avec mise en évidence des termes."""
