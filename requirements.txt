@@ -1,2 +1,3 @@
-elasticsearch>=8.0.0
+elasticsearch==8.11.1
 tabulate
+tqdm
