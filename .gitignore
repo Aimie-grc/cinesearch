@@ -10,3 +10,9 @@ __pycache__/
 
 # System files
 .DS_Store
+
+# Fichier de test au fur et à mesure du développement
+tests.py
+
+# To do list
+to_do_list.txt

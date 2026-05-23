@@ -68,40 +68,63 @@ year_from=None, year_to=None, index="movies"):
 
 def search_plot(es, keywords, index="movies"):
     """Recherche dans le synopsis avec mise en évidence des termes."""
-    query = {
-    # TODO: Construisez votre requête match sur le champ "plot"
-    # Indice: {"match": {"champ": "valeur"}}
-    }
-    highlight = {
-    # TODO: Configurez le highlight sur le champ "plot"
-    # Indice: {"fields": {"plot": {"fragment_size": 150, ...}}}
-    }
+    query = {"match" : {"plot" : keywords }}
+    highlight = {"fields": {"plot": {"fragment_size": 150, "number_of_fragments" : 3}}}
     results = es.search(index=index, query=query, highlight=highlight)
     
-    # TODO: Parcourez les résultats et affichez les highlights
-    # Les highlights sont dans hit['highlight']['plot']
-    pass
+    hits = results['hits']['hits']
+    for hit in hits :
+        source = hit["_source"]
+        print("Titre :", source.get("title", "N/A"))
+        
+        if "highlight" in hit :
+            for fragment in enumerate(hit['highlight']['plot'], start = 1):
+                i, f = fragment
+                print(f"Fragment {i}:", f)
+                print("\n")
+    
+    if not hits :
+        print("Aucun film trouvé.")
 
-def search_fuzzy(es, query, fuzziness=2, index="movies"):
+def search_fuzzy(es, title, fuzziness=2, index="movies"):
     """Recherche tolérante aux fautes de frappe."""
-    query = {
-    # TODO: Construisez une requête match avec fuzziness
-    # Indice: {"match": {"title": {"query": ..., "fuzziness": ...}}}
-    }
+    query = {"match": {"title": {"query": title, "fuzziness": fuzziness}}}
     results = es.search(index=index, query=query)
-    # TODO: Affichez les résultats trouvés malgré les fautes de frappe
-    pass
+    hits = results['hits']['hits']
+    for hit in hits :
+        source = hit["_source"]
+        print("Titre :", source.get("title", "N/A"))
+        print("Score de pertinence :", hit["_score"])
+        print("\n")
+    
+    if not hits :
+        print("Aucun film trouvé.")
 
 # Option 1 : Prefix query (plus simple)
 def suggest_titles(es, prefix, index="movies"):
     """Auto-complétion basée sur un préfixe."""
-    query = {
-    # TODO: Construisez une requête prefix sur le champ "title"
-    # Indice: {"prefix": {"title": {"value": prefix.lower()}}}
-    }
+    query = {"prefix": {"title": prefix.lower()}}
+    
     results = es.search(index=index, query=query)
-    # TODO: Affichez les suggestions de titres
-    pass
+    hits = results['hits']['hits']
+    for hit in hits :
+        source = hit["_source"]
+        print("Titre :", source.get("title", "N/A"))
+    
+    if not hits :
+        print("Aucune suggestion possible.")
 
 # Option 2 : Completion suggester (plus performant)
 # Nécessite un champ "suggest" de type "completion" dans le mapping
+def suggest_titles_2(es, prefix, index="movies"):
+    """Auto-complétion basée sur un préfixe."""
+    query = {"prefix": {"title": prefix.lower()}}
+    
+    results = es.search(index=index, query=query)
+    hits = results['hits']['hits']
+    for hit in hits :
+        source = hit["_source"]
+        print("Titre :", source.get("title", "N/A"))
+    
+    if not hits :
+        print("Aucune suggestion possible.")

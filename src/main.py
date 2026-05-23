@@ -20,10 +20,11 @@ es = Elasticsearch("http://localhost:9200")
 es = create_mapping(es)
 es = index_movies(es,'data/movies_cleaned_v2.json')
 # verif_es(es)
-print('\n')
-print('Search by title "Don Jon"')
+
+print('\nSearch by title "Don Jon"')
 search_by_title(es, 'Don Jon')
-print('Search advanced')
+
+print('\nSearch advanced')
 search_advanced(
     es,
     title="Batman",
@@ -31,3 +32,17 @@ search_advanced(
     min_rating=7,
     year_from=2005
 )
+
+print('\nSearch by plot')
+print("One keyword")
+search_plot(es, 'Batman')
+print('Two keywords')
+search_plot(es, 'batman joker')
+
+print('\n Search fuzzy')
+print('Exemple sans fuzzy')
+search_by_title(es, 'Sttar Warss')
+print('Exemple avec fuzzy')
+search_fuzzy(es, 'Sttar Warss')
+
+print('Suggest Title')
