@@ -1,13 +1,15 @@
-from elasticsearch import Elasticsearch
-
-
 def create_mapping(es):
 
     mappings = {
         "properties": {
             "title": {
                 "type": "text",
-                "analyzer": "standard"
+                "analyzer": "standard",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword"
+                    }
+                }
             },
             "directors": {
                 "type": "text",
@@ -42,7 +44,8 @@ def create_mapping(es):
             },
             "plot": {
                 "type": "text",
-                "analyzer": "standard"
+                "analyzer": "standard",
+                "fielddata": True
             },
             "running_time_secs": {
                 "type": "integer"
@@ -54,7 +57,7 @@ def create_mapping(es):
     }
     if es.indices.exists(index="movies"):
         es.indices.delete(index="movies")
-    else :
-        es.indices.create(index="movies", mappings=mappings)
+
+    es.indices.create(index="movies", mappings=mappings)
     return es
 
