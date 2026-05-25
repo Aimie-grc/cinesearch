@@ -6,17 +6,17 @@ def search_by_title(es, title, index="movies"):
     results = es.search(index=index, query=query, size=10)
     
     hits = results['hits']['hits']
-    for hit in hits :
-        source = hit["_source"]
-        print("Titre :", source.get("title", "N/A"))
-        print("Année :", source.get("year", "N/A"))
-        print("Note :", source.get("rating", "N/A"))
-        print("Réalisateur(s) :", source.get("directors", "N/A"))
-        print("Score de pertinence :", hit["_score"])
-        print("\n")
-    
-    if not hits :
-        print("Aucun film trouvé.")
+
+    return [
+        {
+        "title": hit["_source"].get("title", "N/A"),
+        "year": hit["_source"].get("year", "N/A"),
+        "rating": hit["_source"].get("rating", "N/A"),
+        "directors": hit["_source"].get("directors", "N/A"),
+        "score": hit["_score"]
+        }
+        for hit in hits
+    ]
     
 
 def search_advanced(es, title=None, actor=None, director=None,
@@ -51,54 +51,55 @@ year_from=None, year_to=None, index="movies"):
 
     query = {"bool": {"must": must, "filter": filters}}
     results = es.search(index=index, query=query, size=10)
-    hits = results['hits']['hits']
-    for hit in hits :
-        source = hit["_source"]
-        print("Titre :", source.get("title", "N/A"))
-        print("Acteur(s) :", source.get("actors", "N/A"))
-        print("Genre(s) :", source.get("genres", "N/A"))
-        print("Année :", source.get("year", "N/A"))
-        print("Note :", source.get("rating", "N/A"))
-        print("Réalisateur(s) :", source.get("directors", "N/A"))
-        print("Score de pertinence :", hit["_score"])
-        print("\n")
     
-    if not hits :
-        print("Aucun film trouvé.")
+    hits = results['hits']['hits']
+    return [
+        {
+            "title": hit["_source"].get("title", "N/A"),
+            "actors": hit["_source"].get("actors", "N/A"),
+            "genres": hit["_source"].get("genres", "N/A"),
+            "year": hit["_source"].get("year", "N/A"),
+            "rating": hit["_source"].get("rating", "N/A"),
+            "directors": hit["_source"].get("directors", "N/A"),
+            "score": hit["_score"]
+        }
+        for hit in hits
+    ]
 
 def search_plot(es, keywords, index="movies"):
     """Recherche dans le synopsis avec mise en évidence des termes."""
     query = {"match" : {"plot" : keywords }}
     highlight = {"fields": {"plot": {"fragment_size": 150, "number_of_fragments" : 3}}}
     results = es.search(index=index, query=query, highlight=highlight)
-    
-    hits = results['hits']['hits']
-    for hit in hits :
-        source = hit["_source"]
-        print("Titre :", source.get("title", "N/A"))
-        
-        if "highlight" in hit :
-            for fragment in enumerate(hit['highlight']['plot'], start = 1):
-                i, f = fragment
-                print(f"Fragment {i}:", f)
-                print("\n")
-    
-    if not hits :
-        print("Aucun film trouvé.")
+
+    hits = results["hits"]["hits"]
+
+    return [
+        {
+            "title": hit["_source"].get("title", "N/A"),
+            "highlights": hit.get("highlight", {}).get("plot", []),
+            "plot": hit["_source"].get("plot", "N/A"),
+            "score": hit["_score"]
+        }
+        for hit in hits
+    ]
 
 def search_fuzzy(es, title, fuzziness=2, index="movies"):
     """Recherche tolérante aux fautes de frappe."""
     query = {"match": {"title": {"query": title, "fuzziness": fuzziness}}}
     results = es.search(index=index, query=query)
-    hits = results['hits']['hits']
-    for hit in hits :
-        source = hit["_source"]
-        print("Titre :", source.get("title", "N/A"))
-        print("Score de pertinence :", hit["_score"])
-        print("\n")
     
-    if not hits :
-        print("Aucun film trouvé.")
+    hits = results['hits']['hits']
+
+    return [
+        {
+        "title": hit["_source"].get("title", "N/A"),
+        "year": hit["_source"].get("year", "N/A"),
+        "rating": hit["_source"].get("rating", "N/A"),
+        "score": hit["_score"]
+        }
+        for hit in hits
+    ]
 
 # Option 1 : Prefix query (plus simple)
 def suggest_titles(es, prefix, index="movies"):
@@ -107,12 +108,16 @@ def suggest_titles(es, prefix, index="movies"):
     
     results = es.search(index=index, query=query)
     hits = results['hits']['hits']
-    for hit in hits :
-        source = hit["_source"]
-        print("Titre :", source.get("title", "N/A"))
-    
-    if not hits :
-        print("Aucune suggestion possible.")
+
+    return [
+        {
+        "title": hit["_source"].get("title", "N/A"),
+        "year": hit["_source"].get("year", "N/A"),
+        "rating": hit["_source"].get("rating", "N/A"),
+        "directors": hit["_source"].get("directors", "N/A"),
+        }
+        for hit in hits
+    ]
 
 # Option 2 : Completion suggester (plus performant)
 # Nécessite un champ "suggest" de type "completion" dans le mapping
