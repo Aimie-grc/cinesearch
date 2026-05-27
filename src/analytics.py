@@ -11,28 +11,65 @@ def global_stats(es, index="movies"):
     print(f"Note minimale : {aggregations['min_rating']['value']:.2f}")
     print(f"Note maximale : {aggregations['max_rating']['value']:.2f}")
 
-def top_genres(es, index="movies", size=10):
+def top(es, objectif, index="movies", size=10):
     """Top des genres les plus représentés."""
-    aggs = {
-    # TODO: Définissez une terms aggregation sur le champ "genres"
-    # Indice: {"genres": {"terms": {"field": "genres", "size": size}}}
-    }
+    aggs = {"Top genres": {"terms": {"field": "genres", "size": size}},
+            "Top réalisateurs" : {"terms": {"field": "directors.keyword", "size": size}},
+            "Top acteurs" : {"terms": {"field": "actors.keyword", "size": size}},
+            "Distribution par décennies" : {"histogram" : {"field": "year", "interval" : 10}}
+            }
     result = es.search(index=index, size=0, aggs=aggs)
-    # TODO: Parcourez result["aggregations"]["genres"]["buckets"]
-    # Chaque bucket contient "key" (le genre) et "doc_count" (nombre de films)
-    pass
+
+    for categorie in result["aggregations"]:
+        print(f"\n{categorie}")
+        for bucket in result["aggregations"][categorie]["buckets"]:
+            cat = bucket["key"]
+            if isinstance(cat, float): # Pour les années
+                cat = int(cat)
+            nb_films = bucket["doc_count"]
+            if categorie == "Distribution par décennies":
+                print(f"{cat}-{cat+9}: {nb_films}")
+            else:
+                print(f"{cat}: {nb_films}")
 
 def best_rated_directors(es, min_films=3, index="movies"):
     """Réalisateurs avec la meilleure note moyenne (min N films)."""
-    aggs = {
-    # TODO: Construisez une agrégation imbriquée :
-    # 1. terms aggregation sur "directors.keyword"
-    # 2. Sub-aggregation avg sur "rating"
-    # 3. bucket_selector pour filtrer min_films
-    # Indice: {"directors": {"terms": {...}, "aggs": {...}}}
-    }
+    aggs = {"directors": {
+            "terms": {"field": "directors.keyword", "size" : 100},
+            "aggs": {"avg_rating": {"avg": {"field": "rating"}},
+                    "film_count" : {"value_count" : {"field" : "rating"}},
+                    "min_films_filter" : {"bucket_selector" :{ 
+                                        "buckets_path":{"count" : "film_count"},
+                                        "script" : f"params.count >= {min_films}"
+                                        }}
+            }}}
+    
+
     result = es.search(index=index, size=0, aggs=aggs)
-    # TODO: Trier les buckets par note moyenne décroissante
-    # et afficher le top 10
-    # Indice: sorted(buckets, key=lambda x: x["avg_rating"]["value"], reverse=True)
+
+    buckets = result["aggregations"]["directors"]["buckets"]
+
+    # tri par note moyenne décroissante
+    sorted_buckets = sorted(
+        buckets,
+        key=lambda x: x["avg_rating"]["value"],
+        reverse=True
+    )
+
+    # affichage top 10
+    print("\n🎬 Top réalisateurs (note moyenne) :\n")
+
+    for b in sorted_buckets[:10]:
+        director = b["key"]
+        avg = b["avg_rating"]["value"]
+        count = b["film_count"]["value"]
+
+        print(f"{director} — {avg:.2f} ({count} films)")
+    pass
+
+
+def best_rated_genre():
+    pass
+
+def evolution_note():
     pass

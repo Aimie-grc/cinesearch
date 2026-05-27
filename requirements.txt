@@ -2,3 +2,5 @@ elasticsearch==8.11.1
 tabulate
 tqdm
 colorama
+streamlit
+pytest
