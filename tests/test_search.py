@@ -82,4 +82,4 @@ def test_search_plot_contains_highlight():
         "dream"
     )
 
-    assert any("plot_highlight" in r for r in results)
+    assert any("highlights" in r for r in results)

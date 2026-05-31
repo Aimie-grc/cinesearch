@@ -1,17 +1,49 @@
 def global_stats(es, index="movies"):
     """Calcule les statistiques globales du dataset."""
-    aggs = {"avg_rating" :{"avg": {"field": "rating"}},
-            "min_rating" :{"min": {"field": "rating"}},
-            "max_rating" :{"max": {"field": "rating"}}}
-    result = es.search(index=index, size=0, aggs=aggs)
-    aggregations = result['aggregations']
-    
-    sortie = [{"Nombre total de films": result["hits"]["total"]["value"],
-    "Moyenne des notes" : round(aggregations['avg_rating']['value'],2),
-    "Note minimale" : round(aggregations['min_rating']['value'],2),
-    "Note maximale" : round(aggregations['max_rating']['value'],2)}] # Liste pour faciliter l'affichage
 
-    return sortie
+    aggs = {
+        "avg_rating": {"avg": {"field": "rating"}},
+        "min_rating": {"min": {"field": "rating"}},
+        "max_rating": {"max": {"field": "rating"}}
+    }
+
+    result = es.search(index=index, size=0, aggs=aggs)
+    aggregations = result["aggregations"]
+
+    # Film le mieux noté
+    best = es.search(
+        index=index,
+        size=1,
+        sort=[{"rating": "desc"}],
+        _source=["title", "rating"]
+    )
+
+    best_hit = best["hits"]["hits"][0]["_source"]
+
+    # Film le moins bien noté
+    worst = es.search(
+        index=index,
+        size=1,
+        sort=[{"rating": "asc"}],
+        _source=["title", "rating"]
+    )
+
+    worst_hit = worst["hits"]["hits"][0]["_source"]
+
+    return [
+        [{
+            "nombre_total_films": result["hits"]["total"]["value"],
+            "moyenne_notes": round(aggregations["avg_rating"]["value"], 2),
+            "note_minimale": round(aggregations["min_rating"]["value"], 2),
+            "note_maximale": round(aggregations["max_rating"]["value"], 2)}],
+
+        [{  "titre": best_hit.get("title"),
+            "note": best_hit.get("rating")}],
+
+        [{  "titre": worst_hit.get("title"),
+            "note": worst_hit.get("rating")}]
+    ]
+
 
 def top_genres(es, index="movies", size=10):
     """Top des genres les plus représentés."""
@@ -26,7 +58,7 @@ def top_genres(es, index="movies", size=10):
 
 
 def top_directors(es, index="movies", size=10):
-    """Top des genres les plus représentés."""
+    """Top des réalisateurs les plus représentés."""
     aggs = {"Top réalisateurs" : {"terms": {"field": "directors.keyword", "size": size}}}
     result = es.search(index=index, size=0, aggs=aggs)
 
@@ -37,7 +69,7 @@ def top_directors(es, index="movies", size=10):
     ]
 
 def top_actors(es, index="movies", size=10):
-    """Top des genres les plus représentés."""
+    """Top des acteurs les plus représentés."""
     aggs = {"Top acteurs" : {"terms": {"field": "actors.keyword", "size": size}}}
     result = es.search(index=index, size=0, aggs=aggs)
 
@@ -47,8 +79,7 @@ def top_actors(es, index="movies", size=10):
         for bucket in result["aggregations"]["Top acteurs"]["buckets"]
     ]
 
-def distribution(es, index="movies", size=10):
-    """Top des genres les plus représentés."""
+def distribution(es, index="movies"):
     aggs = {"Distribution par décennies" : {"histogram" : {"field": "year", "interval" : 10}}}
     result = es.search(index=index, size=0, aggs=aggs)
 

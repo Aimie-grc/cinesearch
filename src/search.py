@@ -118,18 +118,3 @@ def suggest_titles(es, prefix, index="movies"):
         }
         for hit in hits
     ]
-
-# Option 2 : Completion suggester (plus performant)
-# Nécessite un champ "suggest" de type "completion" dans le mapping
-def suggest_titles_2(es, prefix, index="movies"):
-    """Auto-complétion basée sur un préfixe."""
-    query = {"prefix": {"title": prefix.lower()}}
-    
-    results = es.search(index=index, query=query)
-    hits = results['hits']['hits']
-    for hit in hits :
-        source = hit["_source"]
-        print("Titre :", source.get("title", "N/A"))
-    
-    if not hits :
-        print("Aucune suggestion possible.")

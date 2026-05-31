@@ -14,7 +14,7 @@ RESET = Style.RESET_ALL
 
 def format_result(results_json, taille_colonne=50):
     if not results_json:
-        print("Aucun résultat.")
+        print(ERROR + "Aucun résultat." + RESET)
         return
 
     keys = list(results_json[0].keys())
@@ -198,7 +198,11 @@ def main():
                 case "6":
                     print("\n--- Statistiques globales ---")
                     results = global_stats(es)
-                    format_result(results)
+                    format_result(results[0])
+                    print("Meilleur film")
+                    format_result(results[1])
+                    print("Pire film")
+                    format_result(results[2])
 
                 case "7":
                     print(menu_7)

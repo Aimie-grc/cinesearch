@@ -9,3 +9,6 @@ docker compose down
 
 # Arrêter et supprimer les volumes
 docker compose down -v
+
+# Lancer les tests
+python3 -m pytest -v
