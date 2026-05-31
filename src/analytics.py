@@ -111,7 +111,7 @@ def evolution_note(es, index="movies"):
     return [
         {"annee" : b["key"],
          "note_moyenne" : round(b["avg_rating"]["value"], 2) if b["avg_rating"]["value"] else None,
-         "nb_films " : b["film_count"]["value"]}
+         "nb_films" : b["film_count"]["value"]}
         for b in sorted_buckets
     ]
 

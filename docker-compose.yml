@@ -23,5 +23,13 @@ services:
     depends_on:
       - elasticsearch
 
+  streamlit:
+    build: .
+    container_name: streamlit
+    ports:
+      - "8501:8501"
+    depends_on:
+      - elasticsearch
+
 volumes:
   es_data:
