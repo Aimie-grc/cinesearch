@@ -5,7 +5,7 @@ init()
 from config import create_mapping
 from indexer import index_movies, verif_es
 from search import search_by_title, search_advanced, search_plot,search_fuzzy, suggest_titles
-from analytics import global_stats, top_genres, best_rated_directors
+from analytics import global_stats, top_genres, top_actors, top_directors, distribution, best_rated_directors, best_rated_genres, evolution_note
 
 INFO = Fore.CYAN
 SUCCESS = Fore.GREEN
@@ -94,8 +94,28 @@ def main():
     ║ 4. Recherche floue (tolérance erreurs)   ║
     ║ 5. Auto-complétion de titre              ║
     ║ 6. Statistiques globales                 ║
-    ║ 7. Top réalisateurs / acteurs / genres   ║
-    ║ 8. Quitter                               ║
+    ║ 7. Analyses par catégories               ║
+    ║ 8. Analyses avancées                     ║
+    ║ 9. Quitter                               ║
+    ╚══════════════════════════════════════════╝"""
+
+    menu_7 = """
+    ╔══════════════════════════════════════════╗
+    ║ CinéSearch — Analyses par catégories     ║
+    ╠══════════════════════════════════════════╣
+    ║ 1. Top genres                            ║
+    ║ 2. Top réalisateurs                      ║
+    ║ 3. Top acteurs                           ║
+    ║ 4. Distribution des films par années     ║
+    ╚══════════════════════════════════════════╝"""
+
+    menu_8 = """
+    ╔══════════════════════════════════════════╗
+    ║ CinéSearch — Analyses avancées           ║
+    ╠══════════════════════════════════════════╣
+    ║ 1. Evolution de la note moyenne          ║
+    ║ 2. Genres les mieux notés                ║
+    ║ 3. Meilleurs réalisateurs                ║
     ╚══════════════════════════════════════════╝"""
 
     while True:
@@ -177,13 +197,41 @@ def main():
 
                 case "6":
                     print("\n--- Statistiques globales ---")
-                    global_stats(es)
+                    results = global_stats(es)
+                    format_result(results)
 
                 case "7":
-                    print("\n--- Top genres ---")
-                    top_genres(es)
-
+                    print(menu_7)
+                    sous_choice_7 = input("Votre choix : ").strip()
+                    match sous_choice_7 :
+                        case "1":
+                            print("\n--- Genres les + représentés ---")
+                            format_result(top_genres(es))
+                        case "2":
+                            print("\n--- Acteurs les + présents ---")
+                            format_result(top_actors(es))
+                        case "3":
+                            print("\n--- Réalisateurs les + présents ---")
+                            format_result(top_directors(es))
+                        case "4":
+                            print("\n--- Nombre de films par décennies ---")
+                            format_result(distribution(es))
+                
                 case "8":
+                    print(menu_8)
+                    sous_choice_8 = input("Votre choix : ").strip()
+                    match sous_choice_8 :
+                        case "1":
+                            print("\n--- Moyenne des notes par années ---")
+                            format_result(evolution_note(es))
+                        case "2":
+                            print("\n--- Genres les + appréciés ---")
+                            format_result(best_rated_genres(es))
+                        case "3":
+                            print("\n--- Meilleurs réalisateurs ---")
+                            format_result(best_rated_directors(es))
+
+                case "9":
                     print(INFO + "\nMerci d'avoir utilisé CineSearch. À bientôt !" + RESET)
                     break
 

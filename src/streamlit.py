@@ -4,7 +4,7 @@ from elasticsearch import Elasticsearch
 from config import create_mapping
 from indexer import index_movies
 from search import search_by_title, search_advanced, search_plot,search_fuzzy, suggest_titles
-from analytics import global_stats, top, best_rated_directors
+from analytics import global_stats, top_genres, top_actors, top_directors, distribution, best_rated_directors, best_rated_genres, evolution_note
 
 
 st.set_page_config(
@@ -205,23 +205,24 @@ elif menu == "Statistiques globales":
     st.header("Statistiques globales")
 
     stats = global_stats(es)
+    display_results(stats)
 
-    col1, col2, col3 = st.columns(3)
+    # col1, col2, col3 = st.columns(3)
 
-    col1.metric(
-        "Nombre de films",
-        stats["total_movies"]
-    )
+    # col1.metric(
+    #     "Nombre de films",
+    #     stats["total_movies"]
+    # )
 
-    col2.metric(
-        "Note moyenne",
-        round(stats["avg_rating"], 2)
-    )
+    # col2.metric(
+    #     "Note moyenne",
+    #     round(stats["avg_rating"], 2)
+    # )
 
-    col3.metric(
-        "Nombre de genres",
-        stats["genres_count"]
-    )
+    # col3.metric(
+    #     "Nombre de genres",
+    #     stats["genres_count"]
+    # )
 
 elif menu == "Analyses par catégorie":
 
